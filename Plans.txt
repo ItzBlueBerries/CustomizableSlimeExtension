@@ -1,3 +1,0 @@
-﻿[CUSTOMIZABLE-SLIME-EXTENSION-1.0.0] (INITIAL)
-+ Initial Mod Release!
-+ Secondary Slime Support.
