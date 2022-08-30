@@ -1,0 +1,11 @@
+﻿{
+  "id": "customizableexog",
+  "name": "Customizable Slime Extension",
+  "author": "FruitsyOG",
+  "description": "Customize your very own secondary slime from within configurations!",
+  "version": "1.0",
+  "load_after": [
+    "shortcutlibog",
+    "customizableog"
+  ]
+}
