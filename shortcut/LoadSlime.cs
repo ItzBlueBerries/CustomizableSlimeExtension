@@ -14,6 +14,7 @@ namespace CustomizableSlime.shortcut
 {
     internal class CustomizableSlime
     {
+        internal static (SlimeDefinition, GameObject, SlimeAppearance) customizedSlime;
         public static void LoadSlime()
         {
             var SplatTopC = StringToByte(ConfigurationSlime.SPLAT_TOP_COLOR_RGB);
@@ -21,7 +22,10 @@ namespace CustomizableSlime.shortcut
             var SplatBotC = StringToByte(ConfigurationSlime.SPLAT_BOTTOM_COLOR_RGB);
             var VacC = StringToByte(ConfigurationSlime.SLIME_VAC_COLOR_RGB);
 
-            (SlimeDefinition, GameObject, SlimeAppearance) customizedSlime = Slime.CreateSlime(ConfigurationSlime.WHAT_SLIME_LOOKS_LIKE, ConfigurationSlime.WHAT_SLIME_ACTS_LIKE, Ids.CUSTOMIZABLE_EX_SLIME, ConfigurationSlime.SLIME_NAME, OtherFunc.CreateSprite(OtherFunc.LoadAsset("Images\\slime_icon_2.png")), 
+            if (ConfigurationSlime.WHAT_SLIME_LOOKS_LIKE == Identifiable.Id.QUICKSILVER_SLIME)
+                ConfigurationSlime.WHAT_SLIME_LOOKS_LIKE = Identifiable.Id.PINK_SLIME;
+
+            customizedSlime = Slime.CreateSlime(ConfigurationSlime.WHAT_SLIME_LOOKS_LIKE, ConfigurationSlime.WHAT_SLIME_ACTS_LIKE, Ids.CUSTOMIZABLE_EX_SLIME, ConfigurationSlime.SLIME_NAME, OtherFunc.CreateSprite(OtherFunc.LoadAsset("Images\\slime_icon_2.png")), 
                 new Color32(VacC[0], VacC[1], VacC[2], byte.MaxValue),
                 new Color32(SplatTopC[0], SplatTopC[1], SplatTopC[2], byte.MaxValue),
                 new Color32(SplatMidC[0], SplatMidC[1], SplatMidC[2], byte.MaxValue),
@@ -34,12 +38,19 @@ namespace CustomizableSlime.shortcut
 
             SlimeRandomMove customMove = customObj.GetComponent<SlimeRandomMove>();
 
-            customDef.Diet.Produces = new Identifiable.Id[] { (Identifiable.Id)Enum.Parse(typeof(Identifiable.Id), ConfigurationSlime.WHAT_SLIME_PRODUCES) };
-            customDef.Diet.MajorFoodGroups = new SlimeEat.FoodGroup[] { ConfigurationSlime.WHAT_SLIME_EATS };
-            customDef.Diet.Favorites = new Identifiable.Id[] { ConfigurationSlime.FAVORITE_SLIME_EATS };
-            customDef.Diet.AdditionalFoods = new Identifiable.Id[] { ConfigurationSlime.ADDITIONAL_FOOD_SLIME_EATS };
+            List<Identifiable.Id> list = new List<Identifiable.Id>();
+
+            foreach (string stringedID in ConfigurationSlime.WHAT_SLIME_PRODUCES)
+            {
+                list.Add((Identifiable.Id)Enum.Parse(typeof(Identifiable.Id), stringedID));
+            }
+
+            customDef.Diet.Produces = list.ToArray();
+            customDef.Diet.MajorFoodGroups = ConfigurationSlime.WHAT_SLIME_EATS;
+            customDef.Diet.Favorites = ConfigurationSlime.FAVORITE_SLIME_EATS;
+            customDef.Diet.AdditionalFoods = ConfigurationSlime.ADDITIONAL_FOOD_SLIME_EATS;
             customDef.CanLargofy = ConfigurationSlime.CAN_LARGOFY;
-            customDef.FavoriteToys = new Identifiable.Id[] { ConfigurationSlime.FAVORITE_SLIME_TOY };
+            customDef.FavoriteToys = ConfigurationSlime.FAVORITE_SLIME_TOY;
 
             customObj.transform.localScale *= ConfigurationAdvanced.SLIME_LOCAL_SCALE;
 
@@ -103,6 +114,26 @@ namespace CustomizableSlime.shortcut
                     new SlimeAppearanceStructure(customApp.Structures[0]),
                     Structure.AddStructure(Slime.GetSlimeDef(Identifiable.Id.PHOSPHOR_SLIME), 1)
                 };
+            }
+
+            SlimeAppearance.SlimeBone[] attachedBones = new SlimeAppearance.SlimeBone[]
+            {
+                SlimeAppearance.SlimeBone.JiggleBack,
+                SlimeAppearance.SlimeBone.JiggleBottom,
+                SlimeAppearance.SlimeBone.JiggleFront,
+                SlimeAppearance.SlimeBone.JiggleLeft,
+                SlimeAppearance.SlimeBone.JiggleRight,
+                SlimeAppearance.SlimeBone.JiggleTop
+            };
+
+            if (ConfigurationMesh.CUSTOM_MESH_ENABLED)
+            {
+                if (ConfigurationMesh.CUSTOM_MESH_ENABLED && ConfigurationSlime.WHAT_SLIME_LOOKS_LIKE == Identifiable.Id.QUANTUM_SLIME)
+                    return;
+                (GameObject, SlimeAppearanceObject, SlimeAppearance.SlimeBone[]) customMeshBody = Structure.CreateBasicStructure(LoadAssetBundle("slime_bundle_2"), ConfigurationMesh.CUSTOM_MESH_OBJ_NAME, "slime_" + ConfigurationMesh.CUSTOM_MESH_OBJ_NAME, SlimeAppearance.SlimeBone.Slime, SlimeAppearance.SlimeBone.None, attachedBones, RubberBoneEffect.RubberType.Slime, ConfigurationMesh.CUSTOM_MESH_RUBBER_EFFECT);
+                customMeshBody.Item2.IgnoreLODIndex = ConfigurationMesh.CUSTOM_MESH_IGNORE_LOD_INDEX;
+                AssetsLib.MeshUtils.GenerateBoneData(customObj.GetComponent<SlimeAppearanceApplicator>(), customMeshBody.Item2, ConfigurationMesh.CUSTOM_MESH_JIGGLE, ConfigurationMesh.CUSTOM_MESH_SCALE);
+                Structure.SetStructureElement(ConfigurationMesh.CUSTOM_MESH_OBJ_NAME, customApp, new SlimeAppearanceObject[] { customMeshBody.Item2 }, 0, false, true);
             }
 
             SlimeAppearanceStructure[] structures = customApp.Structures;
